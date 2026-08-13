@@ -4,6 +4,7 @@
   border-radius: 8px;
   margin-bottom: 20px;
   font-family: sans-serif;
+  text-align: left;
 }
 
 .formHeading {
@@ -62,7 +63,7 @@
 .submitBtn {
   height: 42px;
   padding: 0 24px;
-  background-color: #4f46e5;
+  background-color: #5284f7;
   color: white;
   border-radius: 6px;
   border: none;
