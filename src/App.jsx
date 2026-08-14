@@ -1,3 +1,8 @@
+import React from 'react';
+import Navbar from './components/Navbar/Navbar';
+import './App.css';
+
+function App() {
 // src/App.jsx
 import React from 'react';
 import { TaskProvider } from './context/TaskContext';
@@ -5,6 +10,19 @@ import './App.css';
 
 export default function App() {
   return (
+    <div className="app-container">
+
+      <Navbar />
+
+      <main className="main-content">
+
+      </main>
+    </div>
+  );
+}
+
+export default App;
+
     <TaskProvider>
       <div className="app-container">
         

@@ -1,0 +1,125 @@
+.navbar {
+    width: 100%;
+    height: 70px;
+    background-color: #ffffff;
+    border-top: 3px solid #2d2d2d;
+    border-bottom: 1px solid #e1e5eb;
+    box-sizing: border-box;
+}
+
+.navbarContent {
+    width: 100%;
+    max-width: 1480px;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 24px;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+}
+
+/* ---------------- LOGO ---------------- */
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logoIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    background: #2f6df6;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+.logoBlock {
+    width: 6px;
+    height: 19px;
+    background-color: #ffffff;
+    border-radius: 2px;
+}
+
+.logoBlockSmall {
+    width: 6px;
+    height: 12px;
+    background-color: #ffffff;
+    border-radius: 2px;
+}
+
+.logoText {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.6px;
+    color: #111827;
+}
+
+.logoText span {
+    color: #3475ed;
+}
+
+/* ---------------- BOARD BUTTON ---------------- */
+
+.navigation {
+    margin-left: 38px;
+    display: flex;
+    align-items: center;
+}
+
+.boardButton {
+    height: 38px;
+    padding: 0 14px;
+
+    background-color: #eff6ff;
+    color: #2563eb;
+
+    border: 1px solid #bfdbfe;
+    border-radius: 7px;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+/* ---------------- PROFILE ---------------- */
+
+.profileSection {
+    margin-left: auto;
+
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.divider {
+    width: 1px;
+    height: 32px;
+    background-color: #d9dce3;
+}
+
+.avatar {
+    width: 38px;
+    height: 38px;
+
+    border-radius: 50%;
+
+    background: linear-gradient(135deg,
+            #4f7df7,
+            #7c4ce8);
+
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 13px;
+    font-weight: 600;
+}
