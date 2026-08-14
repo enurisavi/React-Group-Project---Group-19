@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { useTasks } from '../../hooks/useTasks'; 
 import styles from './TaskForm.module.css';
 
-const AddTaskForm = ({ onAddTask }) => {
+const AddTaskForm = () => {
+  const { addTask } = useTasks(); 
+
   const [title, setTitle] = useState('');
   const [assignee, setAssignee] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -10,16 +13,15 @@ const AddTaskForm = ({ onAddTask }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Form validation (ensuring fields aren't empty)
+    
     if (title.trim() === '') return setErrorMessage('Task title is required.');
     if (assignee.trim() === '') return setErrorMessage('Assignee is required.');
     if (dueDate === '') return setErrorMessage('Due date is required.');
 
-    // Triggers the central state handler to append a new task
     setErrorMessage('');
-    if (onAddTask) {
-      onAddTask({ id: Date.now(), title, assignee, dueDate, status: 'TODO' });
-    }
+    
+  
+    addTask({ title, assignee, dueDate });
 
     // Clear fields
     setTitle('');
