@@ -5,6 +5,7 @@ import React from 'react';
 import { TaskProvider } from './context/TaskContext';
 import Navbar from './components/Navbar/Navbar';
 import AddTaskForm from './components/TaskForm/AddTaskForm';
+import { TaskBoard } from './components/Board/TaskBoard';
 import './App.css';
 
 export default function App() {
@@ -15,7 +16,7 @@ export default function App() {
         <main className="main-content">
           {/* Member 2: <AnalyticsBar /> will go here */}
           <AddTaskForm/>
-          {/* Member 4: <TaskBoard /> will go here */}
+          <TaskBoard/>
         </main>
       </div>
     </TaskProvider>
