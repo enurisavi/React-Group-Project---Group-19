@@ -2,7 +2,7 @@
 
 // src/App.jsx
 import React from 'react';
-import { TaskProvider } from './context/TaskContext';
+import { TaskProvider } from './Context/TaskContext';
 import Navbar from './components/Navbar/Navbar';
 import AddTaskForm from './components/TaskForm/AddTaskForm';
 import { TaskBoard } from './components/Board/TaskBoard';
