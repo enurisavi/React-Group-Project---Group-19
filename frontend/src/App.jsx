@@ -6,6 +6,7 @@ import { TaskProvider } from './Context/TaskContext';
 import Navbar from './components/Navbar/Navbar';
 import AddTaskForm from './components/TaskForm/AddTaskForm';
 import { TaskBoard } from './components/Board/TaskBoard';
+import AnalyticsBar from './components/Board/AnalyticsBar';
 import './App.css';
 
 export default function App() {
@@ -14,7 +15,7 @@ export default function App() {
       <div className="app-container">
         <Navbar />
         <main className="main-content">
-          {/* Member 2: <AnalyticsBar /> will go here */}
+          <AnalyticsBar />
           <AddTaskForm/>
           <TaskBoard/>
         </main>
