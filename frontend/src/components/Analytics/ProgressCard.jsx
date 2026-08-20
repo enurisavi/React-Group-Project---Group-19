@@ -11,6 +11,9 @@ import styles from './Analytics.module.css';
  * @param {number} props.percentage - Calculated completion percentage ((Done / Total) * 100)
  */
 export const ProgressCard = ({ totalTasks = 0, doneCount = 0, percentage = 0 }) => {
+  const safePercentage = Math.min(100, Math.max(0, Math.round(percentage) || 0));
+  const taskUnitText = totalTasks === 1 ? 'task completed' : 'tasks completed';
+
   return (
     <div className={styles.progressSection}>
       <div className={styles.progressHeader}>
@@ -24,17 +27,24 @@ export const ProgressCard = ({ totalTasks = 0, doneCount = 0, percentage = 0 }) 
         <span className={styles.boldCount}>
           {doneCount} of {totalTasks}
         </span>
-        <span className={styles.subText}>tasks completed</span>
+        <span className={styles.subText}>{taskUnitText}</span>
       </div>
 
-      <div className={styles.barTrack} role="progressbar" aria-valuenow={percentage} aria-valuemin="0" aria-valuemax="100">
+      <div
+        className={styles.barTrack}
+        role="progressbar"
+        aria-label="Task completion progress"
+        aria-valuenow={safePercentage}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
         <div
           className={styles.barFill}
-          style={{ width: `${percentage}%` }}
+          style={{ width: `${safePercentage}%` }}
         />
       </div>
 
-      <span className={styles.percentText}>{percentage}% complete</span>
+      <span className={styles.percentText}>{safePercentage}% complete</span>
     </div>
   );
 };

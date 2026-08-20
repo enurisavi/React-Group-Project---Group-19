@@ -167,7 +167,7 @@
 
 .searchInput {
   width: 100%;
-  padding: 8px 12px 8px 32px;
+  padding: 8px 30px 8px 32px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 13px;
@@ -185,6 +185,32 @@
 .searchInput:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.clearSearchBtn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 2px;
+  font-size: 12px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.clearSearchBtn:hover {
+  color: #4b5563;
+  background-color: #f3f4f6;
 }
 
 /* ---------------- RESPONSIVE ---------------- */
