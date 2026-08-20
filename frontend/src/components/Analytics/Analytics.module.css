@@ -69,9 +69,9 @@
 
 .barFill {
   height: 100%;
-  background-color: #2563eb;
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
   border-radius: 999px;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .percentText {
@@ -86,6 +86,7 @@
   width: 1px;
   height: 48px;
   background-color: #e5e7eb;
+  flex-shrink: 0;
 }
 
 /* ---------------- STATUS COUNTERS ---------------- */
@@ -102,8 +103,14 @@
   background-color: #f9fafb;
   border-radius: 8px;
   padding: 8px 16px;
-  min-width: 70px;
+  min-width: 72px;
   box-sizing: border-box;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.statusCard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 .cardHeader {
@@ -157,17 +164,15 @@
   left: 10px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 13px;
+  width: 16px;
+  height: 16px;
   color: #9ca3af;
   pointer-events: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .searchInput {
   width: 100%;
-  padding: 8px 30px 8px 32px;
+  padding: 8px 30px 8px 34px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 13px;
@@ -184,7 +189,7 @@
 
 .searchInput:focus {
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .clearSearchBtn {
@@ -196,9 +201,8 @@
   border: none;
   color: #9ca3af;
   cursor: pointer;
-  padding: 2px;
-  font-size: 12px;
-  line-height: 1;
+  padding: 0;
+  font-size: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -209,7 +213,7 @@
 }
 
 .clearSearchBtn:hover {
-  color: #4b5563;
+  color: #374151;
   background-color: #f3f4f6;
 }
 
