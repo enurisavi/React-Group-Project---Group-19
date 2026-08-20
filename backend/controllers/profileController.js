@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Profile = require('../models/Profile');
 const User = require('../models/User');
 
@@ -8,11 +9,19 @@ const getTaskModel = () => {
   try {
     return require('../models/Task');
   } catch (err) {
-    if (require('mongoose').models.Task) {
-      return require('mongoose').models.Task;
+    if (mongoose.models.Task) {
+      return mongoose.models.Task;
     }
     return null;
   }
+};
+
+/**
+ * Normalizes status strings for consistent analytics aggregations
+ */
+const normalizeStatus = (status) => {
+  if (!status) return '';
+  return String(status).toUpperCase().replace(/[\s-_]/g, '');
 };
 
 /**
@@ -22,17 +31,23 @@ const getTaskModel = () => {
  */
 const getCurrentUserProfile = async (req, res) => {
   try {
-    let profile = await Profile.findOne({ user: req.user.id }).populate('user', 'name email');
+    const user = await User.findById(req.user.id).select('name email');
 
-    if (!profile) {
-      // Auto-initialize default profile for smooth user onboarding
-      const user = await User.findById(req.user.id).select('name email');
-      profile = await Profile.create({
-        user: req.user.id,
-        displayName: user?.name || '',
-      });
-      profile = await profile.populate('user', 'name email');
-    }
+    // Concurrency-safe atomic find-or-create using $setOnInsert
+    const profile = await Profile.findOneAndUpdate(
+      { user: req.user.id },
+      {
+        $setOnInsert: {
+          user: req.user.id,
+          displayName: user?.name || '',
+        },
+      },
+      {
+        new: true,
+        upsert: true,
+        setDefaultsOnInsert: true,
+      }
+    ).populate('user', 'name email');
 
     return res.status(200).json(profile);
   } catch (error) {
@@ -65,33 +80,38 @@ const updateCurrentUserProfile = async (req, res) => {
     const profileFields = {};
     profileFields.user = req.user.id;
 
-    if (displayName !== undefined) profileFields.displayName = displayName;
-    if (avatar !== undefined) profileFields.avatar = avatar;
-    if (jobTitle !== undefined) profileFields.jobTitle = jobTitle;
-    if (department !== undefined) profileFields.department = department;
-    if (bio !== undefined) profileFields.bio = bio;
-    if (phoneNumber !== undefined) profileFields.phoneNumber = phoneNumber;
+    if (displayName !== undefined) profileFields.displayName = String(displayName).trim();
+    if (avatar !== undefined) profileFields.avatar = String(avatar).trim();
+    if (jobTitle !== undefined) profileFields.jobTitle = String(jobTitle).trim();
+    if (department !== undefined) profileFields.department = String(department).trim();
+    if (bio !== undefined) profileFields.bio = String(bio).trim();
+    if (phoneNumber !== undefined) profileFields.phoneNumber = String(phoneNumber).trim();
 
     // Skills array formatting
     if (skills !== undefined) {
       profileFields.skills = Array.isArray(skills)
-        ? skills
-        : skills.split(',').map((s) => s.trim()).filter(Boolean);
+        ? skills.map((s) => String(s).trim()).filter(Boolean)
+        : String(skills)
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
     }
 
     // Social Links nested object
-    if (socialLinks) {
+    if (socialLinks && typeof socialLinks === 'object') {
       profileFields.socialLinks = {
-        github: socialLinks.github || '',
-        linkedin: socialLinks.linkedin || '',
-        twitter: socialLinks.twitter || '',
+        github: String(socialLinks.github || '').trim(),
+        linkedin: String(socialLinks.linkedin || '').trim(),
+        twitter: String(socialLinks.twitter || '').trim(),
       };
     }
 
     // Preferences nested object
-    if (preferences) {
+    if (preferences && typeof preferences === 'object') {
       profileFields.preferences = {
-        theme: preferences.theme || 'light',
+        theme: ['light', 'dark', 'system'].includes(preferences.theme)
+          ? preferences.theme
+          : 'light',
         notificationsEnabled: preferences.notificationsEnabled ?? true,
       };
     }
@@ -138,7 +158,14 @@ const getAllProfiles = async (req, res) => {
  */
 const getProfileByUserId = async (req, res) => {
   try {
-    const profile = await Profile.findOne({ user: req.params.userId }).populate(
+    const { userId } = req.params;
+
+    // Validate ObjectId format before database query
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format' });
+    }
+
+    const profile = await Profile.findOne({ user: userId }).populate(
       'user',
       'name email'
     );
@@ -178,9 +205,12 @@ const getUserAnalytics = async (req, res) => {
       });
 
       totalTasks = userTasks.length;
-      todoCount = userTasks.filter((t) => t.status === 'TODO').length;
-      doingCount = userTasks.filter((t) => t.status === 'DOING').length;
-      doneCount = userTasks.filter((t) => t.status === 'DONE').length;
+      for (const t of userTasks) {
+        const norm = normalizeStatus(t.status);
+        if (norm === 'TODO') todoCount += 1;
+        else if (norm === 'DOING' || norm === 'INPROGRESS') doingCount += 1;
+        else if (norm === 'DONE' || norm === 'COMPLETED') doneCount += 1;
+      }
     }
 
     const completionRate = totalTasks > 0 ? Math.round((doneCount / totalTasks) * 100) : 0;
@@ -223,9 +253,6 @@ const getTeamAnalytics = async (req, res) => {
     if (Task) {
       const allTasks = await Task.find();
       totalTasks = allTasks.length;
-      totalDone = allTasks.filter((t) => t.status === 'DONE').length;
-      totalDoing = allTasks.filter((t) => t.status === 'DOING').length;
-      totalTodo = allTasks.filter((t) => t.status === 'TODO').length;
 
       // Group tasks by assignee
       const countsByAssignee = {};
@@ -235,9 +262,18 @@ const getTeamAnalytics = async (req, res) => {
           countsByAssignee[name] = { total: 0, done: 0, doing: 0, todo: 0 };
         }
         countsByAssignee[name].total += 1;
-        if (task.status === 'DONE') countsByAssignee[name].done += 1;
-        else if (task.status === 'DOING') countsByAssignee[name].doing += 1;
-        else if (task.status === 'TODO') countsByAssignee[name].todo += 1;
+
+        const norm = normalizeStatus(task.status);
+        if (norm === 'DONE' || norm === 'COMPLETED') {
+          totalDone += 1;
+          countsByAssignee[name].done += 1;
+        } else if (norm === 'DOING' || norm === 'INPROGRESS') {
+          totalDoing += 1;
+          countsByAssignee[name].doing += 1;
+        } else if (norm === 'TODO') {
+          totalTodo += 1;
+          countsByAssignee[name].todo += 1;
+        }
       });
 
       workloadBreakdown = Object.keys(countsByAssignee).map((assignee) => ({

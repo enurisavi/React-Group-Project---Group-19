@@ -10,7 +10,7 @@ const profileSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: [true, 'User reference is required'],
-      unique: true,
+      unique: true, // Automatically creates unique index on user
     },
     displayName: {
       type: String,
@@ -67,8 +67,5 @@ const profileSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
-// Optimize query performance for user lookups
-profileSchema.index({ user: 1 });
 
 module.exports = mongoose.model('Profile', profileSchema);
