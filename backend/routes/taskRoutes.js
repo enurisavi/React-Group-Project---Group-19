@@ -6,7 +6,7 @@ const {
   updateTask,
   deleteTask,
 } = require('../controllers/taskController');
-const protect = require('../middleware/authMiddleware');
+const {protect} = require('../middleware/authMiddleware');
 
 router.route('/')
   .get(protect, getTasks)
