@@ -1,0 +1,149 @@
+.analyticsContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 20px;
+  gap: 24px;
+}
+
+.progressSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.progressHeader {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.progressFraction {
+  color: #9ca3af;
+  margin-left: 6px;
+}
+
+.progressMain {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.boldCount {
+  font-size: 20px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.subText {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.barTrack {
+  width: 180px;
+  height: 6px;
+  background-color: #e5e7eb;
+  border-radius: 999px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background-color: #2563eb;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.percentText {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.divider {
+  width: 1px;
+  height: 48px;
+  background-color: #e5e7eb;
+}
+
+.statusGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.statusCard {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #f3f4f6;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  padding: 8px 16px;
+  min-width: 70px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.todoDot { background-color: #f59e0b; }
+.doingDot { background-color: #3b82f6; }
+.doneDot { background-color: #10b981; }
+
+.cardTitle {
+  letter-spacing: 0.05em;
+}
+
+.cardValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-top: 2px;
+}
+
+.searchWrapper {
+  position: relative;
+  width: 280px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  background-color: #ffffff;
+  color: #374151;
+}
+
+.searchInput:focus {
+  border-color: #3b82f6;
+}
