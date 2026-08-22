@@ -1,0 +1,9 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SyncBoard API Documentation",
+    "version": "1.0.0",
+    "description": "API Documentation for SyncBoard Application"
+  },
+  "paths": {}
+}
