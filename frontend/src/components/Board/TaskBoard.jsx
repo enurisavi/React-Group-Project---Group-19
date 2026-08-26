@@ -1,4 +1,5 @@
 // src/components/Board/TaskBoard.jsx
+import OfflineBanner from '../OfflineBanner';
 import React from 'react';
 import { useTasks } from '../../hooks/useTasks';
 import { Column } from './Column';
@@ -22,10 +23,13 @@ export const TaskBoard = () => {
   const doneTasks = filteredTasks.filter((t) => t.status === 'DONE');
 
   return (
+    <>
+    <OfflineBanner />
     <div className={styles.boardGrid}>
       <Column title="TODO" tasks={todoTasks} statusType="todo" />
       <Column title="DOING" tasks={doingTasks} statusType="doing" />
       <Column title="DONE" tasks={doneTasks} statusType="done" />
     </div>
+    </>
   );
 };
