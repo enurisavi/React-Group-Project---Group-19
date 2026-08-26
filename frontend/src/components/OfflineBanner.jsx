@@ -1,10 +1,14 @@
+import { syncOfflineData } from '../utils/api';
 import { useState, useEffect } from 'react';
 
 const OfflineBanner = () => {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
 
     useEffect(() => {
-        const handleOnline = () => setIsOnline(true);
+        const handleOnline = () => {
+            setIsOnline(true);
+            syncOfflineData();
+        };
         const handleOffline = () => setIsOnline(false);
 
         window.addEventListener('online', handleOnline);
