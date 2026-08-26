@@ -7,6 +7,7 @@ const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const boardRoutes = require('./routes/boardRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+const { errorHandler } = require('./middleware/errorMiddleware');
 
 const app = express();
 
