@@ -2,10 +2,14 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB Connected Successfully');
+    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/syncboard_db');
+    
+    // Only log if not running under Jest test environment
+    if (process.env.NODE_ENV !== 'test') {
+      console.log(`MongoDB Connected: ${conn.connection.host}`);
+    }
   } catch (error) {
-    console.error('Database connection error:', error.message);
+    console.error(`Database connection error: ${error.message}`);
     process.exit(1);
   }
 };
