@@ -1,10 +1,10 @@
 import React, { createContext, useState } from 'react';
 
-// 1. Context eka create karagන්නවා
+
 export const TaskContext = createContext();
 
 export const TaskProvider = ({ children }) => {
-  // Mock Data (Initial state eka podiyata damma anith ayat UI balaganna)
+  
   const [tasks, setTasks] = useState([
     {
       id: '1',
