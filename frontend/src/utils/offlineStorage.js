@@ -1,11 +1,12 @@
 /**
  * Client-Side Persistence Engine (Member 4 Deliverable)
  * Provides robust localStorage caching, form draft persistence,
- * cross-tab synchronization, and offline action queue helpers for SyncBoard.
+ * cross-tab synchronization, and offline action queue helpers for SyncBoard / CollabBoard.
  */
 
 export const STORAGE_KEYS = {
   TASKS: 'syncboard_tasks_cache',
+  LEGACY_TASKS: 'collabboard_tasks_cache',
   DRAFT_TASK: 'syncboard_draft_task_cache',
   PENDING_ACTIONS: 'syncboard_pending_actions',
   LAST_SYNC: 'syncboard_last_sync_timestamp',
@@ -55,14 +56,18 @@ export const saveTasks = (tasks) => {
 };
 
 /**
- * Retrieves cached tasks from localStorage with corrupted JSON self-healing.
+ * Retrieves cached tasks from localStorage with backward-compatible key lookup and corrupted JSON self-healing.
  * @param {Array} fallbackTasks - Default fallback tasks array if cache is empty or invalid
  * @returns {Array} Parsed tasks array
  */
 export const getTasks = (fallbackTasks = []) => {
   if (!isStorageAvailable()) return fallbackTasks;
   try {
-    const rawData = window.localStorage.getItem(STORAGE_KEYS.TASKS);
+    // Primary key check with fallback to legacy key
+    const rawData =
+      window.localStorage.getItem(STORAGE_KEYS.TASKS) ||
+      window.localStorage.getItem(STORAGE_KEYS.LEGACY_TASKS);
+
     if (!rawData) return fallbackTasks;
     const parsed = JSON.parse(rawData);
     if (Array.isArray(parsed) && parsed.length > 0) {
@@ -73,6 +78,7 @@ export const getTasks = (fallbackTasks = []) => {
     console.warn('[OfflineStorage] Corrupted tasks cache detected, resetting key:', err);
     try {
       window.localStorage.removeItem(STORAGE_KEYS.TASKS);
+      window.localStorage.removeItem(STORAGE_KEYS.LEGACY_TASKS);
     } catch (_) {}
     return fallbackTasks;
   }
@@ -85,6 +91,7 @@ export const clearTasks = () => {
   if (!isStorageAvailable()) return;
   try {
     window.localStorage.removeItem(STORAGE_KEYS.TASKS);
+    window.localStorage.removeItem(STORAGE_KEYS.LEGACY_TASKS);
   } catch (err) {
     console.error('[OfflineStorage] Error clearing tasks cache:', err);
   }
