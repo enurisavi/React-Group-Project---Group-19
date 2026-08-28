@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-// Import Member 4's offline storage utilities
-import { getFromStorage, STORAGE_KEYS } from '../utils/offlineStorage';
+// Import Member 4's local storage utilities
+import { getFromStorage, STORAGE_KEYS } from '../utils/localStorage';
 
 export const useOfflineSync = () => {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
