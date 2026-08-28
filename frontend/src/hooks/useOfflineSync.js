@@ -10,7 +10,7 @@ export const useOfflineSync = () => {
         try {
             const localData = getFromStorage(STORAGE_KEYS.TASKS);
             if (localData) {
-                console.log('✅ Hydrated state successfully from local cache');
+                console.log(' Hydrated state successfully from local cache');
                 return localData;
             }
         } catch (error) {
