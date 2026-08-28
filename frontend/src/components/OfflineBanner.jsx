@@ -20,7 +20,7 @@ const OfflineBanner = () => {
             width: '100%',
             zIndex: 1000
         }}>
-            ⚠️ Offline Mode / Working Offline
+            ⚠️ Offline Mode 
         </div>
     );
 };
