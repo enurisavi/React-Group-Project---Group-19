@@ -1,12 +1,17 @@
 // src/App.jsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { TaskProvider } from './Context/TaskContext';
 import { useTasks } from './hooks/useTasks';
 import Navbar from './components/Navbar/Navbar';
 import AddTaskForm from './components/TaskForm/AddTaskForm';
 import { TaskBoard } from './components/Board/TaskBoard';
 import AnalyticsBar from './components/Board/AnalyticsBar';
-import { saveTasks, getTasks, isStorageAvailable } from './utils/offlineStorage';
+import {
+  saveTasks,
+  getTasks,
+  isStorageAvailable,
+  STORAGE_KEYS,
+} from './utils/offlineStorage';
 import './App.css';
 
 /**
@@ -16,25 +21,41 @@ import './App.css';
  */
 function PersistenceEngine({ children }) {
   const { tasks } = useTasks();
+  const isInitialMount = useRef(true);
 
-  // 1. Automatically write board & task state updates to localStorage
+  // 1. Automatically write board & task state updates to localStorage with hydration check
   useEffect(() => {
-    if (tasks && Array.isArray(tasks)) {
-      saveTasks(tasks);
+    if (!tasks || !Array.isArray(tasks)) return;
+
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      // On initial mount, ensure cached tasks exist or seed the cache
+      const cached = getTasks(null);
+      if (!cached) {
+        saveTasks(tasks);
+      }
+      return;
     }
+
+    // Subsequent user actions (add, delete, move) automatically persist
+    saveTasks(tasks);
   }, [tasks]);
 
-  // 2. Cross-tab synchronization listener
+  // 2. Cross-tab synchronization listener & Custom Event broadcasting
   useEffect(() => {
     if (!isStorageAvailable()) return;
 
     const handleStorageChange = (event) => {
-      if (event.key === 'syncboard_tasks_cache' && event.newValue) {
+      if (event.key === STORAGE_KEYS.TASKS && event.newValue) {
         try {
           const remoteTasks = JSON.parse(event.newValue);
           if (Array.isArray(remoteTasks)) {
-            // Log synchronization for telemetry and diagnostics
-            console.info('[PersistenceEngine] Cache synced across tabs');
+            // Broadcast custom event so other components or offline sync banners can react
+            window.dispatchEvent(
+              new CustomEvent('syncboard:storage_updated', {
+                detail: { tasks: remoteTasks },
+              })
+            );
           }
         } catch (err) {
           console.warn('[PersistenceEngine] Cross-tab sync parse error:', err);

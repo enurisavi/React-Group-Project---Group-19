@@ -1,7 +1,7 @@
 /**
  * Client-Side Persistence Engine (Member 4 Deliverable)
  * Provides robust localStorage caching, form draft persistence,
- * and offline action queue helpers for SyncBoard.
+ * cross-tab synchronization, and offline action queue helpers for SyncBoard.
  */
 
 export const STORAGE_KEYS = {
@@ -13,7 +13,8 @@ export const STORAGE_KEYS = {
 };
 
 /**
- * Validates if window.localStorage is accessible and writable in the current environment
+ * Validates if window.localStorage is accessible and writable in the current runtime environment.
+ * Handles incognito mode, security sandboxes, and quota blocks gracefully.
  * @returns {boolean}
  */
 export const isStorageAvailable = () => {
@@ -32,7 +33,7 @@ export const isStorageAvailable = () => {
 };
 
 /**
- * Saves tasks array to localStorage cache
+ * Saves tasks array to localStorage cache with QuotaExceeded protection.
  * @param {Array} tasks - Array of task objects
  * @returns {boolean} Success status
  */
@@ -44,13 +45,17 @@ export const saveTasks = (tasks) => {
     window.localStorage.setItem(STORAGE_KEYS.LAST_SYNC, new Date().toISOString());
     return true;
   } catch (err) {
-    console.error('[OfflineStorage] Error saving tasks cache:', err);
+    if (err.name === 'QuotaExceededError' || err.code === 22 || err.code === 1014) {
+      console.error('[OfflineStorage] Storage quota exceeded. Unable to cache tasks.');
+    } else {
+      console.error('[OfflineStorage] Error saving tasks cache:', err);
+    }
     return false;
   }
 };
 
 /**
- * Retrieves cached tasks from localStorage
+ * Retrieves cached tasks from localStorage with corrupted JSON self-healing.
  * @param {Array} fallbackTasks - Default fallback tasks array if cache is empty or invalid
  * @returns {Array} Parsed tasks array
  */
@@ -60,15 +65,21 @@ export const getTasks = (fallbackTasks = []) => {
     const rawData = window.localStorage.getItem(STORAGE_KEYS.TASKS);
     if (!rawData) return fallbackTasks;
     const parsed = JSON.parse(rawData);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : fallbackTasks;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed;
+    }
+    return fallbackTasks;
   } catch (err) {
-    console.error('[OfflineStorage] Error parsing tasks cache:', err);
+    console.warn('[OfflineStorage] Corrupted tasks cache detected, resetting key:', err);
+    try {
+      window.localStorage.removeItem(STORAGE_KEYS.TASKS);
+    } catch (_) {}
     return fallbackTasks;
   }
 };
 
 /**
- * Clears the cached tasks from storage
+ * Clears the cached tasks from storage.
  */
 export const clearTasks = () => {
   if (!isStorageAvailable()) return;
@@ -80,8 +91,8 @@ export const clearTasks = () => {
 };
 
 /**
- * Saves in-progress form inputs (title, assignee, dueDate) to avoid data loss on page refresh
- * @param {Object} draft - Form draft state
+ * Saves in-progress form inputs (title, assignee, dueDate) to avoid data loss on accidental reload.
+ * @param {Object} draft - Form draft state object
  */
 export const saveDraft = (draft) => {
   if (!isStorageAvailable()) return;
@@ -93,7 +104,7 @@ export const saveDraft = (draft) => {
 };
 
 /**
- * Retrieves saved task form draft
+ * Retrieves saved task form draft with corruption recovery.
  * @returns {Object|null} Draft object or null
  */
 export const getDraft = () => {
@@ -102,13 +113,16 @@ export const getDraft = () => {
     const rawDraft = window.localStorage.getItem(STORAGE_KEYS.DRAFT_TASK);
     return rawDraft ? JSON.parse(rawDraft) : null;
   } catch (err) {
-    console.error('[OfflineStorage] Error reading form draft:', err);
+    console.warn('[OfflineStorage] Error reading form draft, resetting draft key:', err);
+    try {
+      window.localStorage.removeItem(STORAGE_KEYS.DRAFT_TASK);
+    } catch (_) {}
     return null;
   }
 };
 
 /**
- * Clears the saved task form draft
+ * Clears the saved task form draft upon successful form submission.
  */
 export const clearDraft = () => {
   if (!isStorageAvailable()) return;
@@ -120,7 +134,7 @@ export const clearDraft = () => {
 };
 
 /**
- * Queues an action executed while offline to be synced when online connection returns
+ * Queues an action executed while offline to be synced when online connection returns.
  * @param {Object} action - Action descriptor (e.g. { type: 'ADD_TASK', payload: {...}, timestamp })
  */
 export const queuePendingAction = (action) => {
@@ -129,7 +143,7 @@ export const queuePendingAction = (action) => {
     const currentActions = getPendingActions();
     const actionWithMeta = {
       ...action,
-      id: action.id || Date.now().toString(),
+      id: action.id || `action_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: action.timestamp || new Date().toISOString(),
     };
     currentActions.push(actionWithMeta);
@@ -140,7 +154,7 @@ export const queuePendingAction = (action) => {
 };
 
 /**
- * Retrieves all pending offline action queue items
+ * Retrieves all pending offline action queue items.
  * @returns {Array} Array of pending action objects
  */
 export const getPendingActions = () => {
@@ -149,13 +163,16 @@ export const getPendingActions = () => {
     const rawActions = window.localStorage.getItem(STORAGE_KEYS.PENDING_ACTIONS);
     return rawActions ? JSON.parse(rawActions) : [];
   } catch (err) {
-    console.error('[OfflineStorage] Error retrieving pending actions:', err);
+    console.warn('[OfflineStorage] Error retrieving pending actions, resetting queue:', err);
+    try {
+      window.localStorage.removeItem(STORAGE_KEYS.PENDING_ACTIONS);
+    } catch (_) {}
     return [];
   }
 };
 
 /**
- * Clears pending offline actions once synchronized with the server
+ * Clears pending offline actions once synchronized with the server API.
  */
 export const clearPendingActions = () => {
   if (!isStorageAvailable()) return;
@@ -167,7 +184,7 @@ export const clearPendingActions = () => {
 };
 
 /**
- * Retrieves storage metadata including last sync timestamp and item count
+ * Retrieves storage metadata including last sync timestamp, cache availability, and queue size.
  * @returns {Object}
  */
 export const getStorageMetadata = () => {
@@ -181,7 +198,7 @@ export const getStorageMetadata = () => {
 };
 
 /**
- * Purges all SyncBoard caches from localStorage
+ * Purges all SyncBoard storage keys from localStorage.
  */
 export const clearAllStorage = () => {
   if (!isStorageAvailable()) return;
