@@ -1,14 +1,18 @@
-let offlineQueue = [];
+import { saveToStorage, getFromStorage, STORAGE_KEYS } from './offlineStorage';
 
 export const sendApiRequest = async (url, method = 'POST', data = {}) => {
     if (!navigator.onLine) {
+        let currentQueue = getFromStorage(STORAGE_KEYS.PENDING_ACTIONS) || [];
+        
+        
+        currentQueue.push({ url, method, data });
+        
+        saveToStorage(STORAGE_KEYS.PENDING_ACTIONS, currentQueue);
 
-        offlineQueue.push({ url, method, data });
-        console.log("⚠️ Offline mode: Action saved to queue.", { url, method, data });
+        console.log("Offline mode: Action saved to storage queue.", { url, method, data });
         
         return { success: true, offline: true, message: 'Saved locally. Will sync later.' };
     } else {
-        
         try {
             const response = await fetch(url, {
                 method: method,
@@ -24,14 +28,18 @@ export const sendApiRequest = async (url, method = 'POST', data = {}) => {
 };
 
 export const syncOfflineData = async () => {
-    if (offlineQueue.length > 0) {
-        console.log("🌐 Internet is back! Syncing pending requests...");
+
+    let pendingQueue = getFromStorage(STORAGE_KEYS.PENDING_ACTIONS) || [];
+
+    if (pendingQueue.length > 0) {
+        console.log("Internet is back! Syncing pending requests...");
         
-        for (let req of offlineQueue) {
+        for (let req of pendingQueue) {
             await sendApiRequest(req.url, req.method, req.data);
         }
         
-        console.log("✅ All offline data synced successfully!");
-        offlineQueue = [];
+        console.log("All offline data synced successfully!");
+        
+        saveToStorage(STORAGE_KEYS.PENDING_ACTIONS, []);
     }
 };
