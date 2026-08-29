@@ -5,29 +5,7 @@ export const TaskContext = createContext();
 
 export const TaskProvider = ({ children }) => {
   
-  const [tasks, setTasks] = useState([
-    {
-      id: '1',
-      title: 'Write unit tests',
-      assignee: 'Sam Patel',
-      dueDate: '2026-08-26',
-      status: 'TODO',
-    },
-    {
-      id: '2',
-      title: 'Build API endpoints',
-      assignee: 'Jordan Lee',
-      dueDate: '2026-08-22',
-      status: 'DOING',
-    },
-    {
-      id: '3',
-      title: 'Define project scope',
-      assignee: 'Jordan Lee',
-      dueDate: '2026-08-15',
-      status: 'DONE',
-    },
-  ]);
+  const [tasks, setTasks] = useState([]);
 
   const [searchQuery, setSearchQuery] = useState('');
 
