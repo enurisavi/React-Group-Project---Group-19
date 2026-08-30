@@ -14,19 +14,19 @@ SyncBoard is a collaborative Kanban-style task management application built with
 * Node.js (v18 or higher)
 * npm
 
-### 1. Setup & Run Backend
+### Running the Project
+
 ```bash
+# 1. Setup & Run Backend (Terminal 1)
 cd backend
 npm install
 npm run dev
 
-### 2.Setup & frontend
-```bash
+# 2. Setup & Run Frontend (Terminal 2)
 cd frontend
 npm install
 npm start
 
-### 3. Run Automated Backend Tests
-```bash
+# 3. Run Automated Backend Tests
 cd backend
 npm test
