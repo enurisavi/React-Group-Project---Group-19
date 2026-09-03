@@ -1,72 +1,82 @@
-import React, { createContext, useState } from 'react';
-
+import React, { createContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 export const TaskContext = createContext();
 
 export const TaskProvider = ({ children }) => {
-  
-  const [tasks, setTasks] = useState([
-    {
-      id: '1',
-      title: 'Write unit tests',
-      assignee: 'Sam Patel',
-      dueDate: '2026-08-26',
-      status: 'TODO',
-    },
-    {
-      id: '2',
-      title: 'Build API endpoints',
-      assignee: 'Jordan Lee',
-      dueDate: '2026-08-22',
-      status: 'DOING',
-    },
-    {
-      id: '3',
-      title: 'Define project scope',
-      assignee: 'Jordan Lee',
-      dueDate: '2026-08-15',
-      status: 'DONE',
-    },
-  ]);
 
+  const [tasks, setTasks] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Function 1: Add New Task
-  const addTask = (newTask) => {
-    const taskWithId = {
-      ...newTask,
-      id: Date.now().toString(), // Simple ID generator
-      status: 'TODO', // Default status for new tasks
+  const API_URL = 'http://localhost:5000/api/tasks';
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const response = await axios.get(API_URL);
+        setTasks(response.data);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      }
     };
-    setTasks((prevTasks) => [...prevTasks, taskWithId]);
+
+    fetchTasks();
+  }, []);
+
+  // Function 1: Add New Task (Backend POST Call)
+  const addTask = async (newTask) => {
+    try {
+      const response = await axios.post(API_URL, {
+        ...newTask,
+        status: 'TODO',
+      });
+      setTasks((prevTasks) => [...prevTasks, response.data]);
+    } catch (error) {
+      console.error('Error adding task:', error);
+    }
   };
 
-  // Function 2: Delete Task
-  const deleteTask = (taskId) => {
-    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
+  // Function 2: Delete Task (Backend DELETE Call)
+  const deleteTask = async (taskId) => {
+    try {
+      await axios.delete(`${API_URL}/${taskId}`);
+      setTasks((prevTasks) => prevTasks.filter((task) => (task._id || task.id) !== taskId));
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   };
 
-  // Function 3: Move Task Status (TODO -> DOING -> DONE)
-  const moveTask = (taskId, direction) => {
+  // Function 3: Move Task Status (Backend PUT/PATCH Call)
+  const moveTask = async (taskId, direction) => {
     const statusOrder = ['TODO', 'DOING', 'DONE'];
+    const targetTask = tasks.find((task) => (task._id || task.id) === taskId);
 
-    setTasks((prevTasks) =>
-      prevTasks.map((task) => {
-        if (task.id === taskId) {
-          const currentIndex = statusOrder.indexOf(task.status);
-          let newIndex = currentIndex;
+    if (!targetTask) return;
 
-          if (direction === 'next' && currentIndex < statusOrder.length - 1) {
-            newIndex += 1;
-          } else if (direction === 'prev' && currentIndex > 0) {
-            newIndex -= 1;
-          }
+    const currentIndex = statusOrder.indexOf(targetTask.status);
+    let newIndex = currentIndex;
 
-          return { ...task, status: statusOrder[newIndex] };
-        }
-        return task;
-      })
-    );
+    if (direction === 'next' && currentIndex < statusOrder.length - 1) {
+      newIndex += 1;
+    } else if (direction === 'prev' && currentIndex > 0) {
+      newIndex -= 1;
+    }
+
+    const updatedStatus = statusOrder[newIndex];
+
+    try {
+      const response = await axios.put(`${API_URL}/${taskId}`, {
+        status: updatedStatus,
+      });
+
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          (task._id || task.id) === taskId ? { ...task, status: response.data.status || updatedStatus } : task
+        )
+      );
+    } catch (error) {
+      console.error('Error moving task:', error);
+    }
   };
 
   return (
