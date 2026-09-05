@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { TaskProvider } from './Context/TaskContext';
 import { useTasks } from './hooks/useTasks';
 import Navbar from './components/Navbar/Navbar';
@@ -29,7 +29,6 @@ function PersistenceEngine({ children }) {
 
     if (isInitialMount.current) {
       isInitialMount.current = false;
-      // On initial mount, ensure cached tasks exist or seed the cache
       const cached = getTasks(null);
       if (!cached) {
         saveTasks(tasks);
@@ -50,7 +49,6 @@ function PersistenceEngine({ children }) {
         try {
           const remoteTasks = JSON.parse(event.newValue);
           if (Array.isArray(remoteTasks)) {
-            // Broadcast custom event so other components or offline sync banners can react
             window.dispatchEvent(
               new CustomEvent('syncboard:storage_updated', {
                 detail: { tasks: remoteTasks },
@@ -76,16 +74,20 @@ export default function App() {
 
   // Check if user session exists in localStorage on page load
   useEffect(() => {
-    const savedUser = localStorage.getItem('userData');
+    const savedUser = localStorage.getItem(STORAGE_KEYS.USER || 'userData');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error('Failed to parse saved user data', e);
+      }
     }
     setLoading(false);
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userData');
+    localStorage.removeItem(STORAGE_KEYS.TOKEN || 'userToken');
+    localStorage.removeItem(STORAGE_KEYS.USER || 'userData');
     setUser(null);
   };
 
@@ -97,7 +99,7 @@ export default function App() {
     <TaskProvider>
       <PersistenceEngine>
         <div className="app-container">
-          <Navbar />
+          <Navbar user={user} onLogout={handleLogout} />
           <main className="main-content">
             <AnalyticsBar />
             <AddTaskForm />
