@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const app = express();
-connectDB(); // Connect to MongoDB
+//connectDB(); // Connect to MongoDB
 
 app.use(express.json());
 
@@ -13,7 +13,7 @@ const boardRoutes = require('./routes/boardRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const { errorHandler } = require('./middleware/errorMiddleware');
 
-const app = express();
+//const app = express();
 
 // Connect Database
 connectDB();
@@ -31,6 +31,11 @@ app.use('/api/profile', profileRoutes);
 // Base Route
 app.get('/', (req, res) => {
   res.status(200).json({ message: 'SyncBoard REST API Running' });
+});
+
+// Role 6 Patch: Catch unhandled 404 routes
+app.use((req, res, next) => {
+  res.status(404).json({ message: 'Resource Not Found' });
 });
 
 // Global Error Middleware
