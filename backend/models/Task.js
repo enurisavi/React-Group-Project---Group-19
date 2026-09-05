@@ -29,6 +29,7 @@ const taskSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    versionKey: '__v', // Explicitly enable Mongoose version tracking for concurrency checks
   }
 );
 
