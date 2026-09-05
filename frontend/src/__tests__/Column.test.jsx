@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Column } from '../components/Board/Column';
-import { useTasks } from '../../hooks/useTasks';
+import { useTasks } from '../hooks/useTasks';
 
-vi.mock('../../hooks/useTasks', () => ({
+vi.mock('../hooks/useTasks', () => ({
   useTasks: vi.fn(),
 }));
 
