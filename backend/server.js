@@ -1,5 +1,9 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+//require('dotenv').config();
+const app = express();
+//connectDB(); // Connect to MongoDB
 require('dotenv').config();
 
 
@@ -13,7 +17,7 @@ const boardRoutes = require('./routes/boardRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const { errorHandler } = require('./middleware/errorMiddleware');
 
-const app = express();
+//const app = express();
 
 // Connect Database
 connectDB();
