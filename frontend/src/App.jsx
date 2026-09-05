@@ -1,13 +1,72 @@
 // src/App.jsx
-import React, { useState, useEffect } from 'react';
-
+import React, { useState, useEffect, useRef } from 'react';
 import { TaskProvider } from './Context/TaskContext';
+import { useTasks } from './hooks/useTasks';
 import Navbar from './components/Navbar/Navbar';
 import AddTaskForm from './components/TaskForm/AddTaskForm';
 import { TaskBoard } from './components/Board/TaskBoard';
 import AnalyticsBar from './components/Board/AnalyticsBar';
-import Login from './components/Login';
+import {
+  saveTasks,
+  getTasks,
+  isStorageAvailable,
+  STORAGE_KEYS,
+} from './utils/offlineStorage';
 import './App.css';
+
+/**
+ * PersistenceEngine Component (Member 4 Deliverable)
+ * Automatically writes board updates and task mutations to localStorage cache,
+ * supports cross-tab synchronization, and provides offline resilience.
+ */
+function PersistenceEngine({ children }) {
+  const { tasks } = useTasks();
+  const isInitialMount = useRef(true);
+
+  // 1. Automatically write board & task state updates to localStorage with hydration check
+  useEffect(() => {
+    if (!tasks || !Array.isArray(tasks)) return;
+
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      const cached = getTasks(null);
+      if (!cached) {
+        saveTasks(tasks);
+      }
+      return;
+    }
+
+    // Subsequent user actions (add, delete, move) automatically persist
+    saveTasks(tasks);
+  }, [tasks]);
+
+  // 2. Cross-tab synchronization listener & Custom Event broadcasting
+  useEffect(() => {
+    if (!isStorageAvailable()) return;
+
+    const handleStorageChange = (event) => {
+      if (event.key === STORAGE_KEYS.TASKS && event.newValue) {
+        try {
+          const remoteTasks = JSON.parse(event.newValue);
+          if (Array.isArray(remoteTasks)) {
+            window.dispatchEvent(
+              new CustomEvent('syncboard:storage_updated', {
+                detail: { tasks: remoteTasks },
+              })
+            );
+          }
+        } catch (err) {
+          console.warn('[PersistenceEngine] Cross-tab sync parse error:', err);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  return children;
+}
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -15,16 +74,20 @@ export default function App() {
 
   // Check if user session exists in localStorage on page load
   useEffect(() => {
-    const savedUser = localStorage.getItem('userData');
+    const savedUser = localStorage.getItem(STORAGE_KEYS.USER || 'userData');
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error('Failed to parse saved user data', e);
+      }
     }
     setLoading(false);
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userData');
+    localStorage.removeItem(STORAGE_KEYS.TOKEN || 'userToken');
+    localStorage.removeItem(STORAGE_KEYS.USER || 'userData');
     setUser(null);
   };
 
@@ -34,20 +97,16 @@ export default function App() {
 
   return (
     <TaskProvider>
-      <div className="app-container">
-        {!user ? (
-          <Login onLoginSuccess={(userData) => setUser(userData)} />
-        ) : (
-          <>
-            <Navbar onLogout={handleLogout} currentUser={user} />
-            <main className="main-content">
-              <AnalyticsBar />
-              <AddTaskForm />
-              <TaskBoard />
-            </main>
-          </>
-        )}
-      </div>
+      <PersistenceEngine>
+        <div className="app-container">
+          <Navbar user={user} onLogout={handleLogout} />
+          <main className="main-content">
+            <AnalyticsBar />
+            <AddTaskForm />
+            <TaskBoard />
+          </main>
+        </div>
+      </PersistenceEngine>
     </TaskProvider>
   );
 }
