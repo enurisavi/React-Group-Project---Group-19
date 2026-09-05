@@ -17,9 +17,8 @@ const Login = ({ onLoginSuccess }) => {
 
     // Determine target API route based on mode
     const endpoint = isSignUp 
-      ? 'http://localhost:5000/api/users/register' 
-      : 'http://localhost:5000/api/users/login';
-
+  ? 'http://localhost:5000/api/auth/register' 
+  : 'http://localhost:5000/api/auth/login';
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
