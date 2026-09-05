@@ -5,7 +5,6 @@ const Task = require('../models/Task');
 const getTasks = async (req, res) => {
   try {
     const tasks = await Task.find({ user: req.user.id });
-
     res.status(200).json(tasks);
   } catch (error) {
     res.status(500).json({
@@ -43,51 +42,43 @@ const createTask = async (req, res) => {
   }
 };
 
-// Update a task
+// Update a task with Optimistic Concurrency Control
 const updateTask = async (req, res) => {
   try {
-    // Validate MongoDB ObjectId before querying
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({
-        message: 'Invalid task ID',
-      });
+      return res.status(400).json({ message: 'Invalid task ID' });
     }
 
-    // The client must send the version it last received
     const { __v, ...updates } = req.body;
 
-    if (__v === undefined) {
-      return res.status(400).json({
-        message: 'Task version (__v) is required for update',
-      });
-    }
-
-    // Find the task and make sure it belongs to the logged-in user
+    // Find the task belonging to the authenticated user
     const task = await Task.findOne({
       _id: req.params.id,
       user: req.user.id,
     });
 
     if (!task) {
-      return res.status(404).json({
-        message: 'Task not found',
-      });
+      return res.status(404).json({ message: 'Task not found' });
     }
 
-    // Check whether the task has changed since the client last received it
-    if (task.__v !== __v) {
+    // Default client version to 0 if undefined, or compare directly
+    const clientVersion = typeof __v === 'number' ? __v : (task.__v || 0);
+
+    // Conflict detection: if version on server does not match version from client
+    if (task.__v !== undefined && task.__v !== clientVersion) {
       return res.status(409).json({
-        message: 'Conflict: task has been modified by another user',
+        message: 'Conflict: task has been modified by another session',
+        serverTask: task,
         currentVersion: task.__v,
       });
     }
 
-    // Update only if the version still matches
+    // Perform atomic update and increment version
     const updatedTask = await Task.findOneAndUpdate(
       {
         _id: req.params.id,
         user: req.user.id,
-        __v,
+        __v: task.__v,
       },
       {
         ...updates,
@@ -99,11 +90,9 @@ const updateTask = async (req, res) => {
       }
     );
 
-    // If another update happened between our check and update,
-    // no document will be updated.
     if (!updatedTask) {
       return res.status(409).json({
-        message: 'Conflict: task was modified by another user',
+        message: 'Conflict: task was updated concurrently',
       });
     }
 
@@ -119,22 +108,16 @@ const updateTask = async (req, res) => {
 // Delete a task
 const deleteTask = async (req, res) => {
   try {
-    // Validate MongoDB ObjectId before querying
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({
-        message: 'Invalid task ID',
-      });
+      return res.status(400).json({ message: 'Invalid task ID' });
     }
 
     const task = await Task.findById(req.params.id);
 
     if (!task) {
-      return res.status(404).json({
-        message: 'Task not found',
-      });
+      return res.status(404).json({ message: 'Task not found' });
     }
 
-    // Make sure the logged-in user owns the task
     if (task.user.toString() !== req.user.id) {
       return res.status(401).json({
         message: 'User not authorized to delete this task',
