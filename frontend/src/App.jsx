@@ -8,7 +8,7 @@ import { TaskBoard } from './components/Board/TaskBoard';
 import AnalyticsBar from './components/Board/AnalyticsBar';
 import OfflineBanner from './components/OfflineBanner';
 import ConflictModal from './components/ConflictModal';
-import useOfflineSync from './hooks/useOfflineSync';
+import {useOfflineSync} from './hooks/useOfflineSync';
 import Login from './components/Login';
 import {
   saveTasks,
